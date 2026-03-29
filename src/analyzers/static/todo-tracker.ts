@@ -46,43 +46,58 @@ interface MarkerDef {
  * avoid false-positives from @deprecated JSDoc tags or decorator usage —
  * those are structural annotations, not comment reminders.
  */
+/**
+ * Returns true when the trimmed line starts with a comment token.
+ * Only comment lines should be checked for TODO markers — this prevents
+ * false positives from import paths, variable names, and test descriptions
+ * that contain marker words (e.g., `import { TodoTracker }` or `'todo-comment'`).
+ */
+function isCommentLine(trimmed: string): boolean {
+  return (
+    trimmed.startsWith('//') ||
+    trimmed.startsWith('#') ||
+    trimmed.startsWith('*') ||
+    trimmed.startsWith('/*') ||
+    trimmed.startsWith('<!--') ||
+    trimmed.startsWith(';') ||
+    trimmed.startsWith('!')
+  );
+}
+
 const MARKERS: MarkerDef[] = [
   {
-    pattern: /(?:^|[\s/\-*#;!])TODO\b/i,
+    pattern: /\bTODO\b/i,
     type: 'todo-comment',
     severity: 'info',
   },
   {
-    pattern: /(?:^|[\s/\-*#;!])FIXME\b/i,
+    pattern: /\bFIXME\b/i,
     type: 'fixme-comment',
     severity: 'warning',
   },
   {
-    pattern: /(?:^|[\s/\-*#;!])HACK\b/i,
+    pattern: /\bHACK\b/i,
     type: 'hack-comment',
     severity: 'warning',
   },
   {
-    pattern: /(?:^|[\s/\-*#;!])XXX\b/i,
+    pattern: /\bXXX\b/i,
     type: 'xxx-comment',
     severity: 'warning',
   },
   {
-    pattern: /(?:^|[\s/\-*#;!])WORKAROUND\b/i,
+    pattern: /\bWORKAROUND\b/i,
     type: 'workaround-comment',
     severity: 'warning',
   },
   {
-    // Match TEMP or TEMPORARY
-    pattern: /(?:^|[\s/\-*#;!])TEMP(?:ORARY)?\b/i,
+    // Match TEMP or TEMPORARY — only in comments (guarded by isCommentLine)
+    pattern: /\bTEMP(?:ORARY)?\b/i,
     type: 'temp-comment',
     severity: 'warning',
   },
   {
-    // Only match DEPRECATED when it appears after a comment-opening token.
-    // This prevents matching `@deprecated` JSDoc tags (which start with @)
-    // and TypeScript `@deprecated` decorator-adjacent annotations.
-    pattern: /(?:[/\-*#;!]+\s*)DEPRECATED\b/i,
+    pattern: /\bDEPRECATED\b/i,
     type: 'deprecated-comment',
     severity: 'warning',
   },
@@ -189,8 +204,14 @@ export class TodoTrackerAnalyzer implements Analyzer {
         const lineNumber = i + 1; // 1-based
         const line = lines[i];
 
+        // Only scan comment lines — skip code that happens to contain marker words
+        const trimmed = line.trim();
+        if (!isCommentLine(trimmed)) {
+          continue;
+        }
+
         for (const marker of MARKERS) {
-          if (!marker.pattern.test(line)) {
+          if (!marker.pattern.test(trimmed)) {
             continue;
           }
 
