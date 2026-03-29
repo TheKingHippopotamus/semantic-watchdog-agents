@@ -92,6 +92,16 @@ export class Embedder {
 
     let lastReported = -1;
 
+    // Disable ONNX multi-threading to prevent the macOS mutex crash.
+    // The crash ("mutex lock failed: Invalid argument") is caused by ONNX
+    // background threads racing during Node.js shutdown. Single-threaded
+    // inference is ~20% slower but eliminates the abort trap entirely.
+    const ort = await import('onnxruntime-node');
+    ort.env.wasm.numThreads = 1;
+    if (ort.env && 'numThreads' in ort.env) {
+      (ort.env as Record<string, unknown>).numThreads = 1;
+    }
+
     this.pipe = (await pipeline('feature-extraction', this.modelId, {
       progress_callback: (progress: { status: string; name?: string; progress?: number }) => {
         if (progress.status === 'downloading' && typeof progress.progress === 'number') {

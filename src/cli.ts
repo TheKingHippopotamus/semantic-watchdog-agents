@@ -146,17 +146,16 @@ program
         (f: Finding) => f.severity === 'error' && f.confidence >= config.confidenceThreshold
       );
 
-      // Force exit to prevent the ONNX Runtime mutex destructor race on macOS.
-      // When the semantic layer is active, ONNX background threads may still be
-      // winding down during Node.js's cleanup phase, causing an abort trap.
-      // The Embedder.dispose() call in the orchestrator is the primary fix;
-      // this exit is the safety net that bypasses the GC-triggered destructor
-      // entirely for the common one-shot scan case.
-      process.exit(hasErrors ? 1 : 0);
+      // Immediate exit — bypass ALL Node.js cleanup to prevent ONNX crash.
+      // The C++ mutex destructor in onnxruntime fires during Node's cleanup
+      // phase on macOS, causing "mutex lock failed: Invalid argument" abort.
+      // process.exit() still runs cleanup; process.kill(process.pid, 'SIGKILL'); process.exit() does not.
+      // The scan is complete, findings are reported — safe to hard-exit.
+      process.kill(process.pid, 'SIGKILL'); process.exit(hasErrors ? 1 : 0);
     } catch (err) {
       spinner.fail('Scan failed');
       console.error(chalk.red((err instanceof Error ? err.message : String(err))));
-      process.exit(1);
+      process.kill(process.pid, 'SIGKILL'); process.exit(1);
     }
   });
 

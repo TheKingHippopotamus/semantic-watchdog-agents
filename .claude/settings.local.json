@@ -28,7 +28,8 @@
       "Bash(git remote:*)",
       "Bash(git push:*)",
       "Bash(git reset:*)",
-      "Bash(git update-ref:*)"
+      "Bash(git update-ref:*)",
+      "Bash(echo:*)"
     ]
   },
   "enabledMcpjsonServers": [
