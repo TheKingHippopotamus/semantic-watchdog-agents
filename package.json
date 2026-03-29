@@ -1,0 +1,52 @@
+{
+  "name": "codesentinel",
+  "version": "0.1.0",
+  "description": "Continuous code watchdog — static analysis + semantic AI for detecting dead code, duplication, drift, and security issues",
+  "type": "module",
+  "bin": {
+    "codesentinel": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest",
+    "lint": "eslint src/"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "code-analysis",
+    "dead-code",
+    "duplication",
+    "semantic",
+    "watchdog",
+    "static-analysis",
+    "security"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@huggingface/transformers": "^3.4.0",
+    "@ast-grep/napi": "^0.35.0",
+    "dependency-cruiser": "^16.0.0",
+    "madge": "^8.0.0",
+    "typhonjs-escomplex": "^0.1.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-security": "^3.0.0",
+    "chokidar": "^4.0.0",
+    "commander": "^13.0.0",
+    "chalk": "^5.4.0",
+    "ora": "^8.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "tsx": "^4.0.0",
+    "vitest": "^3.0.0",
+    "@types/node": "^22.0.0"
+  }
+}

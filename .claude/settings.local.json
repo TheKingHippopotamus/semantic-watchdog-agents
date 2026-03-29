@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl --version)",
+      "Bash(git --version)",
+      "Bash(npm --version)",
+      "Bash(node --version)",
+      "Bash(python --version)",
+      "Bash(git branch:*)",
+      "Bash(npm install:*)",
+      "Bash(npm view:*)",
+      "Bash(npx tsc:*)",
+      "Bash(grep -n '`' /Users/kinghippo/Documents/AI-Semantic-Code-Search-CLI/src/utils/git.ts)",
+      "Bash(wc -l src/**/*.ts src/*.ts)",
+      "Bash(node:*)",
+      "Bash(npx vitest:*)",
+      "Bash(for proj:*)",
+      "Bash(do echo:*)",
+      "Read(//Users/kinghippo/Documents/$proj/**)",
+      "Bash(xargs -I{} basename {})",
+      "Read(//Users/kinghippo/Documents/**)",
+      "Bash(done)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(find /Users/kinghippo/Documents/boomerang_by_nexus -maxdepth 3 -name *.ts -o -name *.js -o -name *.py)",
+      "Bash(find /Users/kinghippo/Documents/boomerang_by_nexus/boomerang_project -maxdepth 4 -not -path */node_modules/* -not -path */.git/* -type f -name *.ts -o -name *.js -o -name *.py -o -name *.json -o -name *.yaml -o -name *.env*)",
+      "Bash(awk '{:*)",
+      "Bash(git remote:*)",
+      "Bash(git push:*)",
+      "Bash(git reset:*)",
+      "Bash(git update-ref:*)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "golem-3dmcp",
+    "Roblox_Studio",
+    "Google_Colab"
+  ]
+}

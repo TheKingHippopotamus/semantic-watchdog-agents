@@ -1,0 +1,42 @@
+# Build artifacts — regenerated inside the builder stage
+node_modules
+dist
+
+# Version control — not needed in image context
+.git
+.gitignore
+.gitattributes
+
+# Agent and office infrastructure — never ship these
+.agent-office
+.claude
+
+# Test output and coverage
+coverage
+*.lcov
+.nyc_output
+
+# TypeScript source maps and declarations in project root
+*.js.map
+*.d.ts.map
+
+# Development / editor config
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment files — secrets must not enter the image context
+.env
+.env.*
+!.env.example
+
+# Docker files themselves (no need to COPY into context)
+Dockerfile
+.dockerignore
