@@ -2,6 +2,8 @@
 
 Continuous code watchdog — static analysis, secret scanning, and local AI-powered duplicate detection in a single CLI.
 
+**22 analyzers. 130 secret patterns across 22 categories. 3 analysis layers. Runs fully local.**
+
 ---
 
 ## Why this exists
@@ -37,17 +39,26 @@ CodeSentinel runs three analysis layers on every scan or file change and surface
 │  ┌──────────────▼───────────────────────────┐   │
 │  │         ANALYZER LAYERS                   │   │
 │  │                                           │   │
-│  │  Layer 1: STATIC (deterministic, fast)    │   │
+│  │  Layer 1: STATIC (16 analyzers)           │   │
 │  │  ├── dependency-cruiser  (orphans, arch)  │   │
 │  │  ├── madge               (circular deps)  │   │
 │  │  ├── knip                (dead files)     │   │
 │  │  ├── eslint-plugin-security (patterns)    │   │
 │  │  ├── ast-grep            (AST matching)   │   │
-│  │  └── typhonjs-escomplex  (complexity)     │   │
+│  │  ├── typhonjs-escomplex  (complexity)     │   │
+│  │  ├── todo-tracker        (TODO/FIXME/HACK)│   │
+│  │  ├── commented-code      (dead code blks) │   │
+│  │  ├── dead-dirs           (empty/orphan)   │   │
+│  │  ├── test-coverage       (missing tests)  │   │
+│  │  ├── python-security     (bandit + rules) │   │
+│  │  ├── python-deadcode     (vulture)        │   │
+│  │  ├── config-staleness    (dead refs)      │   │
+│  │  ├── docker-security     (Dockerfile/cmp) │   │
+│  │  └── cross-project-dup  (SHA+line match)  │   │
 │  │                                           │   │
-│  │  Layer 2: SECRETS (regex + entropy)       │   │
-│  │  ├── gitleaks            (150+ patterns)  │   │
-│  │  └── regex fallback      (top-20 formats) │   │
+│  │  Layer 2: SECRETS (130 patterns, 22 cats) │   │
+│  │  ├── gitleaks            (130+ patterns)  │   │
+│  │  └── regex fallback      (base64, envvar) │   │
 │  │                                           │   │
 │  │  Layer 3: SEMANTIC (runs locally)         │   │
 │  │  ├── CodeBERT ONNX       (125MB, MIT)     │   │
@@ -65,7 +76,7 @@ CodeSentinel runs three analysis layers on every scan or file change and surface
 └─────────────────────────────────────────────────┘
 ```
 
-### Layer 1 — Static
+### Layer 1 — Static (16 analyzers)
 
 | What it detects | Tool | Confidence |
 |---|---|---|
@@ -76,12 +87,31 @@ CodeSentinel runs three analysis layers on every scan or file change and surface
 | Orphan modules | dependency-cruiser | 1.0 |
 | Security anti-patterns | ast-grep + eslint-plugin-security | 0.85–0.95 |
 | Cyclomatic complexity spikes | typhonjs-escomplex | 1.0 |
+| TODO / FIXME / HACK comments | todo-tracker | 1.0 |
+| Commented-out code blocks | commented-code | 0.90–1.0 |
+| Empty / duplicate / disconnected directories | dead-dirs | 1.0 |
+| Missing test files | test-coverage | 1.0 |
+| Python security issues (bandit + 11 regex rules) | python-security | 0.85–0.99 |
+| Python dead code (vulture + import analysis) | python-deadcode | 0.90–1.0 |
+| Dead config references, hardcoded localhost, duplicate keys | config-staleness | 0.90–1.0 |
+| Dockerfile / Compose security (root user, latest tag, secrets) | docker-security | 0.90–1.0 |
+| Exact and near-duplicate files across directories (SHA-256 + line similarity) | cross-project-dup | 0.95–1.0 |
 
-### Layer 2 — Secrets
+### Layer 2 — Secrets (2 analyzers)
 
-Runs gitleaks (150+ regex patterns + entropy scoring) when the binary is available, falls back to a built-in JS regex pass covering the top-20 formats (AWS, GitHub, Stripe, OpenAI, etc.) when it is not.
+Runs gitleaks when the binary is available, falls back to a built-in JS regex pass when it is not. Combined coverage: 130 patterns across 22 categories.
 
-### Layer 3 — Semantic
+**Scanned file types:** source code, `.env`, `.json`, `.yaml`, `.toml`, `.ini`, `.md`, `.dockerignore`
+
+**Pattern categories:** AWS, GCP, Azure, DigitalOcean, OpenAI, Anthropic, HuggingFace, Stripe, Slack, Discord, Telegram, Sentry, Datadog, Grafana, Shopify, Django, Rails, Laravel, Vault, Terraform, Ethereum, generic high-entropy strings, and more
+
+**Additional detection beyond regex:**
+- Base64-encoded secret detection (decodes and re-scans)
+- `os.environ.get()` default-value scanning
+- Secrets embedded in comments
+- Secrets inside Markdown code blocks
+
+### Layer 3 — Semantic (4 analyzers)
 
 Loads `onnx-community/codebert-base-ONNX` (125MB, INT8 quantized, MIT license) via `@huggingface/transformers`. The model runs fully local via ONNX Runtime — no API calls, no cloud.
 
@@ -293,7 +323,7 @@ Every finding carries a `confidence` score (0–1). The default gate is `>= 0.90
 | Static | Architecture violation | 1.0 — deterministic (user rules) |
 | Static | Complexity spike | 1.0 — deterministic |
 | Static | Security anti-pattern | 0.85–0.95 |
-| Secrets | Known pattern match (gitleaks) | 0.90–0.99 |
+| Secrets | Known pattern match (gitleaks / built-in 130 patterns) | 0.90–0.99 |
 | Secrets | High-entropy string only | 0.70–0.85 |
 | Semantic | Duplicate, similarity > 0.95 | 0.90+ |
 | Semantic | Duplicate, similarity 0.85–0.95 | 0.70–0.89 |
